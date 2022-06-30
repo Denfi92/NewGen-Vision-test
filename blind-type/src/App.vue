@@ -1,5 +1,5 @@
 <template>
-  <h1>Тренажер слепой печати</h1>
+  <h1 class="center-align">Тренажер слепой печати</h1>
   <TypingArea />
 </template>
 
@@ -16,4 +16,10 @@ export default {
 
 <style lang="scss">
 @import '~materialize-css/dist/css/materialize.min.css';
+
+body {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 </style>
