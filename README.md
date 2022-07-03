@@ -1,5 +1,11 @@
 
-## [Blind-type]()
+## [Blind-type](https://denfi92-blind-typing.netlify.app/)
+
+TODO:
+1. Add Russian text
+2. Add switch language's
+
+
 
 ## Project setup
 ```
