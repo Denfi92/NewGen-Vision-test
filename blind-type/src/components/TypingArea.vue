@@ -1,108 +1,135 @@
 <template>
-  <main class="main container">
-    <h2 class="center-align">Начинайте печатать</h2>
-    <div class="center-align">
-      <span
-        v-for="(letter, idx) in text"
-        :key="idx"
-        :class="[(hasTyping && letter == textArr[idx]) ? 'correct' : '',
-        (hasTyping && (idx == textArr.length) && !isCorrect) ? 'error' : '']"
-      >{{letter}}</span>
-    </div>
-    <label for="textarea">
-      <textarea name="textarea" class="textarea" ref="typing-textarea" @keydown="keyWatch">
-      </textarea>
-    </label>
-    <div class="main-menu">
-      <button class="btn btn-start" @click="startTyping">Начать</button>
-      <button class="btn btn-again">Заново</button>
-    </div>
-    <div class="main-result">
-      <span class="main-result__degree">%</span>
-      <span class="main-result__symbols">знаки в минуту</span>
-    </div>
-    <div class="main-stats">
-      <h3 class="main-stats__title">Результат</h3>
-      <div class="main-stats__result">
-        <span class="main-stats__speed">Ваша скорость:</span>
-        <span class="main-stats__accuracity">Ваша точность:</span>
-        <span></span>
-      </div>
-    </div>
+  <main class="main container z-depth-5">
+    <typing-test
+      :text="text"
+      :step="step"
+      :time="time"
+      :uncorrectChar="uncorrectChar"
+      :testStarted="testStarted"
+    ></typing-test>
+    <typing-repeat
+      :testStarted="testStarted"
+      @repeatTest="repeatTest"
+      :testOver="testOver"
+    ></typing-repeat>
+    <typing-result
+      v-if="testOver"
+      :speed="speed"
+      :accuracity="accuracity"
+    ></typing-result>
   </main>
 </template>
 
 <script>
+import TypingResult from './TypingResult.vue';
+import TypingRepeat from './TypingRepeat.vue';
+import TypingTest from './TypingTest.vue';
+
 export default {
   name: 'TypingArea',
   data() {
     return {
-      text: '',
-      textArr: [],
-      symbols: 0,
-      timer: null,
-      minutes: 0,
-      error: false,
-      hasTyping: false,
-      isFinished: false,
+      text: ' ',
+      key: undefined,
+      testStarted: false,
+      uncorrectChar: false,
+      testOver: false,
+      speed: 0,
+      step: 0,
+      accuracity: 0,
+      timer: 0,
+      time: 0,
+      uncorrectCount: 0,
+      isExeption: ['Shift', 'Control', 'Escape', 'Enter'],
     };
+  },
+  components: {
+    TypingResult,
+    TypingRepeat,
+    TypingTest,
   },
   methods: {
     async fetchText() {
-      const response = await fetch('https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1');
+      const response = await fetch(
+        'https://baconipsum.com/api/?type=all-meat&sentences=1&start-with-lorem=1',
+      );
       const res = await response.json();
       this.text = res.join();
     },
-    startTyping() {
-      // this.timer = setInterval(() => {
-      //   this.minutes += (1 / 60);
-      // }, 1000);
-      console.log(this.hasTyping);
-      this.hasTyping = true;
-      console.log(this.hasTyping);
-      // console.log(this.timer);
-      // console.log(this.minutes);
+    endTest() {
+      this.testOver = true;
+      clearInterval(this.timer);
     },
-    keyWatch(e) {
-      this.textArr.push(e.key);
-      console.log(this.textArr);
+    repeatTest() {
+      this.testOver = false;
+      this.fetchText();
+      this.step = 0;
+      clearInterval(this.timer);
+      this.testStarted = false;
+      this.time = 0;
+      this.accuracity = 0;
+      this.speed = 0;
+      this.uncorrectCount = 0;
     },
-    handleType() {
-      this.textArr.pop();
-      this.symbols += +1;
+    handlePress(e) {
+      this.key = e.key;
+      if (!this.isExeptionKey(this.key)) {
+        if (this.compareChar(this.key)) {
+          this.uncorrectChar = false;
+          this.nextStep();
+          if (this.step === 1) {
+            this.startTest();
+          }
+        } else {
+          this.uncorrectCount += 1;
+          this.uncorrectChar = true;
+        }
+      }
     },
-  },
-  computed: {
-    textArrNew() {
-      return this.text.split('');
+    compareChar(char) {
+      if (this.step < this.text.length - 1) {
+        const correct = this.text[this.step];
+        if (correct === char) {
+          return true;
+        }
+        return false;
+      }
+      return this.endTest();
     },
-    isCorrect() {
-      const i = this.textArr.length;
-      if (this.textArr[i - 1] !== this.textArrNew[i - 1]) {
-        this.handleType();
+    nextStep() {
+      if (this.step >= 0 && this.step <= this.text.length) {
+        this.step += 1;
+      }
+    },
+    startTest() {
+      this.timer = setInterval(() => {
+        this.time += 1;
+        this.speed = ((this.step / this.time) * 60).toFixed();
+        this.accuracityKey(this.uncorrectCount);
+      }, 1000);
+      this.testStarted = true;
+    },
+    isExeptionKey(key) {
+      if (this.isExeption.find((k) => k === key) === undefined) {
         return false;
       }
       return true;
     },
+    accuracityKey(value) {
+      this.accuracity = (100 - (value / this.text.length) * 100).toFixed();
+    },
   },
   mounted() {
-    this.$refs['typing-textarea'].focus();
     this.fetchText();
+    document.addEventListener('keydown', (e) => {
+      this.handlePress(e);
+    });
   },
 };
-
 </script>
 
 <style scoped>
-  .main-subtitle {
-    text-align: center;
-  }
-
-  .correct {
-    color: green;
-  }
-
-  .error {
-    color: red;
-  }
+.main {
+  position: relative;
+}
 </style>

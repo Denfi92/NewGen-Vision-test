@@ -1,6 +1,5 @@
 <template>
-  <h1 class="center-align">Тренажер слепой печати</h1>
-  <TypingArea />
+  <typing-area></typing-area>
 </template>
 
 <script>
@@ -16,10 +15,7 @@ export default {
 
 <style lang="scss">
 @import '~materialize-css/dist/css/materialize.min.css';
-
-body {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
+  body {
+    background-color: lightgrey;
+  }
 </style>
