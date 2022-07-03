@@ -4,6 +4,7 @@
 TODO:
 1. Add Russian text
 2. Add switch language's
+3. Loading
 
 
 
