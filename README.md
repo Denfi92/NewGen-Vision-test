@@ -1,6 +1,5 @@
 
 ## [Blind-type](https://denfi92-blind-typing.netlify.app/)
-## [JS-test](https://denfi92.github.io/NewGen-Vision-test/)
 
 TODO:
 1. Add Russian text
